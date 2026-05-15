@@ -1,11 +1,10 @@
-# -<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="screen-orientation" content="landscape">
 
 <title>Standby Dashboard</title>
 
@@ -23,11 +22,11 @@ font-family:'Inter',sans-serif;
 
 html,
 body{
+width:100%;
+height:100%;
+overflow:hidden;
 background:#000;
 color:white;
-height:100vh;
-overflow:hidden;
-touch-action:none;
 }
 
 body{
@@ -36,6 +35,8 @@ justify-content:center;
 align-items:center;
 position:relative;
 }
+
+/* animated background */
 
 body::before{
 
@@ -73,6 +74,8 @@ transform:translate(0,0) scale(1);
 
 }
 
+/* dashboard */
+
 .dashboard{
 
 position:relative;
@@ -83,6 +86,7 @@ width:min(96vw,1600px);
 aspect-ratio:16/9;
 
 display:grid;
+
 grid-template-columns:2fr 1fr;
 
 gap:20px;
@@ -117,6 +121,8 @@ position:relative;
 
 }
 
+/* clock */
+
 .clock-card{
 
 display:flex;
@@ -125,8 +131,6 @@ justify-content:center;
 align-items:center;
 
 }
-
-/* analog clock */
 
 .analog-clock{
 
@@ -218,11 +222,7 @@ position:absolute;
 position:absolute;
 
 top:20px;
-left:24px;
 right:24px;
-
-display:flex;
-justify-content:space-between;
 
 font-size:18px;
 
@@ -499,8 +499,6 @@ stroke-width:2.5;
 
 }
 
-/* rain */
-
 .rain-wrap{
 
 display:flex;
@@ -532,7 +530,7 @@ flex-direction:column;
 gap:12px;
 
 animation:
-newsScroll 25s linear infinite;
+newsScroll 55s linear infinite;
 
 }
 
@@ -543,7 +541,7 @@ transform:translateY(0);
 }
 
 100%{
-transform:translateY(-40%);
+transform:translateY(-75%);
 }
 
 }
@@ -605,8 +603,6 @@ height:450px;
 
 <div class="dashboard">
 
-<!-- LEFT -->
-
 <div class="card clock-card">
 
 <div class="analog-clock">
@@ -622,12 +618,6 @@ height:450px;
 </div>
 
 <div class="top-bar">
-
-<div id="battery">
-
-🔋 --%
-
-</div>
 
 <div id="locationText">
 
@@ -671,11 +661,7 @@ Loading...
 
 </div>
 
-<!-- RIGHT -->
-
 <div class="card">
-
-<!-- weather -->
 
 <div id="weatherSlide" class="slide">
 
@@ -710,8 +696,6 @@ Kyoto
 </div>
 
 </div>
-
-<!-- news -->
 
 <div id="newsSlide" class="slide hidden">
 
@@ -1004,7 +988,7 @@ document.getElementById('newsList');
 
 newsList.innerHTML='';
 
-data.items.slice(0,5).forEach(article=>{
+data.items.slice(0,20).forEach(article=>{
 
 const div =
 document.createElement('div');
@@ -1118,30 +1102,6 @@ document.getElementById('quake').innerHTML =
 }
 
 loadQuake();
-
-/* battery */
-
-if(navigator.getBattery){
-
-navigator.getBattery().then(battery=>{
-
-function updateBattery(){
-
-document.getElementById('battery').textContent =
-`🔋 ${Math.round(battery.level*100)}%`;
-
-}
-
-updateBattery();
-
-battery.addEventListener(
-'levelchange',
-updateBattery
-);
-
-});
-
-}
 
 /* location */
 
