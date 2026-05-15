@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { Cloud, CloudRain, Sun, CloudSnow, CloudFog, Droplets } from "lucide-react";
+import { Cloud, CloudRain, Sun, CloudSnow, CloudFog } from "lucide-react";
 
 function getWeatherMock() {
   return {
@@ -8,6 +8,31 @@ function getWeatherMock() {
     condition: "rain",
     precipitation: 60,
   };
+}
+
+function getEarthquakesMock() {
+  const now = Date.now();
+
+  return [
+    {
+      id: 1,
+      place: "京都府南部",
+      magnitude: 4.2,
+      intensity: 3,
+      time: now - 12 * 60 * 1000,
+    },
+    {
+      id: 2,
+      place: "大阪北部",
+      magnitude: 3.5,
+      intensity: 2,
+      time: now - 50 * 60 * 1000,
+    },
+  ];
+}
+
+function getMinutesAgo(time) {
+  return Math.floor((Date.now() - time) / 60000);
 }
 
 function WeatherIcon({ condition }) {
@@ -27,8 +52,38 @@ function WeatherIcon({ condition }) {
   }
 }
 
+function EarthquakeCard({ data }) {
+  if (!data || data.intensity < 3) return null;
+
+  return (
+    <Card className="bg-black text-white border-red-500">
+      <CardContent className="p-4">
+        <div className="text-red-400 font-bold">地震速報</div>
+        <div className="text-sm mt-1">
+          {getMinutesAgo(data.time)}分前に {data.place} で発生
+        </div>
+        <div className="text-lg mt-2">
+          M{data.magnitude} / 震度{data.intensity}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
 export default function WeatherApp() {
-  const [weather] = useState(getWeatherMock());
+  const [weather, setWeather] = useState(getWeatherMock());
+  const [quakes, setQuakes] = useState(getEarthquakesMock());
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setWeather(getWeatherMock());
+      setQuakes(getEarthquakesMock());
+    }, 60000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  const latestQuake = quakes.find((q) => q.intensity >= 3);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-900 to-black text-white p-4">
@@ -37,14 +92,19 @@ export default function WeatherApp() {
           <CardContent className="p-4 flex items-center justify-between">
             <div>
               <div className="text-3xl font-bold">{weather.temp}°C</div>
-
-              <div className="text-sm opacity-80 flex items-center gap-2 mt-1">
-                <Droplets className="w-4 h-4 text-white" />
+              <div className="text-sm opacity-80">
                 降水確率 {weather.precipitation}%
               </div>
             </div>
-
             <WeatherIcon condition={weather.condition} />
+          </CardContent>
+        </Card>
+
+        {latestQuake && <EarthquakeCard data={latestQuake} />}
+
+        <Card className="bg-white/5 border-white/10">
+          <CardContent className="p-3 text-sm opacity-80">
+            ※ 震度3以上のみ表示
           </CardContent>
         </Card>
       </div>
