@@ -35,8 +35,6 @@ align-items:center;
 position:relative;
 }
 
-/* background */
-
 body::before{
 
 content:'';
@@ -73,8 +71,6 @@ transform:translate(0,0) scale(1);
 
 }
 
-/* dashboard */
-
 .dashboard{
 
 position:relative;
@@ -100,8 +96,6 @@ backdrop-filter:blur(40px);
 overflow:hidden;
 
 }
-
-/* cards */
 
 .card{
 
@@ -131,8 +125,6 @@ align-items:center;
 flex-direction:column;
 
 }
-
-/* analog */
 
 .analog-clock{
 
@@ -216,8 +208,6 @@ position:absolute;
 
 }
 
-/* date */
-
 .date{
 
 font-size:24px;
@@ -229,8 +219,6 @@ margin-bottom:20px;
 z-index:2;
 
 }
-
-/* flip */
 
 .flip-clock{
 
@@ -316,7 +304,7 @@ border:1px solid rgba(239,68,68,0.3);
 
 color:#fca5a5;
 
-line-height:1.5;
+line-height:1.6;
 
 animation:pulse 2s infinite;
 
@@ -432,8 +420,6 @@ stroke-width:2.5;
 
 }
 
-/* forecast */
-
 .forecast{
 
 display:flex;
@@ -533,42 +519,6 @@ font-size:15px;
 
 }
 
-@media(max-width:1000px){
-
-.dashboard{
-
-aspect-ratio:auto;
-
-min-height:100vh;
-
-grid-template-columns:1fr;
-
-border-radius:0;
-
-}
-
-.flip{
-width:70px;
-height:95px;
-}
-
-.flip-number{
-font-size:58px;
-}
-
-.separator{
-font-size:48px;
-}
-
-.analog-clock{
-
-width:450px;
-height:450px;
-
-}
-
-}
-
 </style>
 </head>
 
@@ -628,8 +578,6 @@ Loading...
 
 <div class="card">
 
-<!-- weather -->
-
 <div id="weatherSlide" class="slide">
 
 <div class="weather-top">
@@ -646,8 +594,7 @@ Kyoto
 
 </div>
 
-<div class="big-icon" id="weatherIcon">
-</div>
+<div class="big-icon" id="weatherIcon"></div>
 
 </div>
 
@@ -658,8 +605,6 @@ Kyoto
 </div>
 
 </div>
-
-<!-- news -->
 
 <div id="newsSlide" class="slide hidden">
 
@@ -711,7 +656,7 @@ enableWakeLock();
 }
 );
 
-/* weather icons */
+/* icons */
 
 function weatherSVG(type){
 
@@ -724,10 +669,6 @@ return `
 <path d="M12 19V22"/>
 <path d="M2 12H5"/>
 <path d="M19 12H22"/>
-<path d="M4.9 4.9L7 7"/>
-<path d="M17 17L19.1 19.1"/>
-<path d="M4.9 19.1L7 17"/>
-<path d="M17 7L19.1 4.9"/>
 </svg>
 `;
 
@@ -810,7 +751,6 @@ const days = [
 ];
 
 document.getElementById('date').textContent =
-
 `${days[now.getDay()]} • ${now.getFullYear()}/${now.getMonth()+1}/${now.getDate()}`;
 
 const secondDeg =
@@ -960,9 +900,7 @@ document.createElement('div');
 div.className='news-item';
 
 div.innerHTML = `
-
 <b>${article.title}</b>
-
 `;
 
 newsList.appendChild(div);
@@ -1081,13 +1019,9 @@ else if(scale==='4') expected='震度2';
 document.getElementById('quake').innerHTML =
 
 `⚠ ${q.earthquake.hypocenter.name}<br>
-
 最大震度 ${scale}<br>
-
 ${diffMin}分前<br>
-
 京都到達予想 ${sec}秒<br>
-
 京都予想 ${expected}`;
 
 if(q.earthquake.maxScale >= 45){
@@ -1153,4 +1087,5 @@ weatherVisible = !weatherVisible;
 
 </script>
 
-</body
+</body>
+</html>
