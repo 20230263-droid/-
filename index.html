@@ -1,8 +1,14 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { Cloud, CloudRain, Sun, CloudSnow, CloudFog } from "lucide-react";
+import {
+  Cloud,
+  CloudRain,
+  Sun,
+  CloudSnow,
+  CloudFog,
+  Droplets,
+} from "lucide-react";
 
-// --- mock fetch functions (replace with real API later) ---
 function getWeatherMock() {
   return {
     temp: 18,
@@ -11,98 +17,37 @@ function getWeatherMock() {
   };
 }
 
-function getEarthquakesMock() {
-  return [
-    {
-      id: 1,
-      place: "京都府南部",
-      magnitude: 4.2,
-      intensity: 3,
-      minutesAgo: 12,
-    },
-    {
-      id: 2,
-      place: "大阪北部",
-      magnitude: 3.5,
-      intensity: 2,
-      minutesAgo: 50,
-    },
-  ];
-}
-
-// --- icon mapper (white, simple style) ---
 function WeatherIcon({ condition }) {
   const base = "w-10 h-10 text-white";
 
-  switch (condition) {
-    case "sun":
-      return <Sun className={base} />;
-    case "rain":
-      return <CloudRain className={base} />;
-    case "snow":
-      return <CloudSnow className={base} />;
-    case "fog":
-      return <CloudFog className={base} />;
-    default:
-      return <Cloud className={base} />;
-  }
-}
+  const map = {
+    sun: <Sun className={base} />,
+    rain: <CloudRain className={base} />,
+    snow: <CloudSnow className={base} />,
+    fog: <CloudFog className={base} />,
+  };
 
-function EarthquakeCard({ data }) {
-  if (!data || data.intensity < 3) return null;
-
-  return (
-    <Card className="bg-black text-white border-red-500">
-      <CardContent className="p-4">
-        <div className="text-red-400 font-bold">地震速報</div>
-        <div className="text-sm mt-1">
-          {data.minutesAgo}分前に {data.place} で発生
-        </div>
-        <div className="text-lg mt-2">
-          M{data.magnitude} / 震度{data.intensity}
-        </div>
-      </CardContent>
-    </Card>
-  );
+  return map[condition] || <Cloud className={base} />;
 }
 
 export default function WeatherApp() {
-  const [weather, setWeather] = useState(getWeatherMock());
-  const [quakes, setQuakes] = useState(getEarthquakesMock());
-
-  useEffect(() => {
-    // TODO: replace with real API
-    const interval = setInterval(() => {
-      setWeather(getWeatherMock());
-      setQuakes(getEarthquakesMock());
-    }, 60000);
-
-    return () => clearInterval(interval);
-  }, []);
-
-  const latestQuake = quakes.find((q) => q.intensity >= 3);
+  const [weather] = useState(getWeatherMock());
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-900 to-black text-white p-4">
-      <div className="max-w-md mx-auto space-y-4">
-        {/* Weather Card */}
+      <div className="max-w-md mx-auto">
         <Card className="bg-white/10 backdrop-blur border-white/20">
-          <CardContent className="p-4 flex items-center justify-between">
+          <CardContent className="p-5 flex items-center justify-between">
             <div>
-              <div className="text-3xl font-bold">{weather.temp}°C</div>
-              <div className="text-sm opacity-80">降水確率 {weather.precipitation}%</div>
+              <div className="text-4xl font-bold">{weather.temp}°C</div>
+
+              <div className="mt-2 flex items-center gap-2 text-sm opacity-80">
+                <Droplets className="w-4 h-4" />
+                降水確率 {weather.precipitation}%
+              </div>
             </div>
+
             <WeatherIcon condition={weather.condition} />
-          </CardContent>
-        </Card>
-
-        {/* Earthquake */}
-        <EarthquakeCard data={latestQuake} />
-
-        {/* optional mini forecast */}
-        <Card className="bg-white/5 border-white/10">
-          <CardContent className="p-3 text-sm opacity-80">
-            ※ 震度3以上のみ表示
           </CardContent>
         </Card>
       </div>
