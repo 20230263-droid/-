@@ -1,986 +1,113 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+import { useEffect, useState } from "react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Cloud, CloudRain, Sun, CloudSnow, CloudFog } from "lucide-react";
 
-<title>Standby Dashboard</title>
-
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
-
-<style>
-
-*{
-margin:0;
-padding:0;
-box-sizing:border-box;
-font-family:'Inter',sans-serif;
+function getWeatherMock() {
+  return {
+    temp: 18,
+    condition: "rain",
+    precipitation: 60,
+  };
 }
 
-html,body{
-width:100%;
-height:100%;
-overflow:hidden;
-background:#000;
-color:#fff;
+function getEarthquakesMock() {
+  const now = Date.now();
+
+  return [
+    {
+      id: 1,
+      place: "京都府南部",
+      magnitude: 4.2,
+      intensity: 3,
+      time: now - 12 * 60 * 1000,
+    },
+    {
+      id: 2,
+      place: "大阪北部",
+      magnitude: 3.5,
+      intensity: 2,
+      time: now - 50 * 60 * 1000,
+    },
+  ];
 }
 
-body{
-display:flex;
-justify-content:center;
-align-items:center;
-position:relative;
+function getMinutesAgo(time) {
+  return Math.floor((Date.now() - time) / 60000);
 }
 
-/* background */
+function WeatherIcon({ condition }) {
+  const base = "w-10 h-10 text-white";
 
-body::before{
-
-content:'';
-
-position:absolute;
-inset:-20%;
-
-background:
-radial-gradient(circle at 20% 20%,#2563eb55,transparent 30%),
-radial-gradient(circle at 80% 30%,#9333ea55,transparent 30%),
-radial-gradient(circle at 50% 80%,#06b6d455,transparent 30%);
-
-filter:blur(90px);
-
-animation:bgMove 20s linear infinite;
-
-z-index:0;
-
+  switch (condition) {
+    case "sun":
+      return <Sun className={base} />;
+    case "rain":
+      return <CloudRain className={base} />;
+    case "snow":
+      return <CloudSnow className={base} />;
+    case "fog":
+      return <CloudFog className={base} />;
+    default:
+      return <Cloud className={base} />;
+  }
 }
 
-@keyframes bgMove{
+function EarthquakeCard({ data }) {
+  if (!data || data.intensity < 3) return null;
 
-0%{
-transform:translate(0,0) scale(1);
+  return (
+    <Card className="bg-black text-white border-red-500">
+      <CardContent className="p-4">
+        <div className="text-red-400 font-bold">地震速報</div>
+        <div className="text-sm mt-1">
+          {getMinutesAgo(data.time)}分前に {data.place} で発生
+        </div>
+        <div className="text-lg mt-2">
+          M{data.magnitude} / 震度{data.intensity}
+        </div>
+      </CardContent>
+    </Card>
+  );
 }
 
-50%{
-transform:translate(-5%,5%) scale(1.08);
+export default function WeatherApp() {
+  const [weather, setWeather] = useState(getWeatherMock());
+  const [quakes, setQuakes] = useState(getEarthquakesMock());
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setWeather(getWeatherMock());
+      setQuakes(getEarthquakesMock());
+    }, 60000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  const latestQuake = quakes.find((q) => q.intensity >= 3);
+
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-blue-900 to-black text-white p-4">
+      <div className="max-w-md mx-auto space-y-4">
+        <Card className="bg-white/10 backdrop-blur border-white/20">
+          <CardContent className="p-4 flex items-center justify-between">
+            <div>
+              <div className="text-3xl font-bold">{weather.temp}°C</div>
+              <div className="text-sm opacity-80">
+                降水確率 {weather.precipitation}%
+              </div>
+            </div>
+            <WeatherIcon condition={weather.condition} />
+          </CardContent>
+        </Card>
+
+        {latestQuake && <EarthquakeCard data={latestQuake} />}
+
+        <Card className="bg-white/5 border-white/10">
+          <CardContent className="p-3 text-sm opacity-80">
+            ※ 震度3以上のみ表示
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
 }
-
-100%{
-transform:translate(0,0) scale(1);
-}
-
-}
-
-/* layout */
-
-.dashboard{
-
-position:relative;
-z-index:1;
-
-width:min(96vw,1600px);
-
-aspect-ratio:16/9;
-
-display:grid;
-grid-template-columns:2fr 1fr;
-
-gap:20px;
-
-padding:24px;
-
-border-radius:40px;
-
-background:rgba(2,6,23,.72);
-
-backdrop-filter:blur(40px);
-
-overflow:hidden;
-
-}
-
-.card{
-
-background:rgba(255,255,255,0.05);
-
-border:1px solid rgba(255,255,255,0.08);
-
-backdrop-filter:blur(20px);
-
-border-radius:30px;
-
-padding:28px;
-
-overflow:hidden;
-
-position:relative;
-
-}
-
-/* clock */
-
-.clock-card{
-
-display:flex;
-justify-content:center;
-align-items:center;
-flex-direction:column;
-
-}
-
-.analog-clock{
-
-position:absolute;
-
-width:700px;
-height:700px;
-
-border-radius:50%;
-
-border:2px solid rgba(255,255,255,0.04);
-
-opacity:.12;
-
-display:flex;
-justify-content:center;
-align-items:center;
-
-z-index:0;
-
-}
-
-.hand{
-
-position:absolute;
-
-bottom:50%;
-left:50%;
-
-transform-origin:bottom;
-
-border-radius:999px;
-
-}
-
-.hour-hand{
-
-width:10px;
-height:160px;
-
-background:white;
-
-margin-left:-5px;
-
-}
-
-.minute-hand{
-
-width:6px;
-height:230px;
-
-background:white;
-
-margin-left:-3px;
-
-}
-
-.second-hand{
-
-width:2px;
-height:280px;
-
-background:#60a5fa;
-
-margin-left:-1px;
-
-box-shadow:0 0 20px #60a5fa;
-
-}
-
-.clock-center{
-
-width:18px;
-height:18px;
-
-border-radius:50%;
-
-background:white;
-
-position:absolute;
-
-}
-
-.date{
-
-font-size:24px;
-
-opacity:.7;
-
-margin-bottom:20px;
-
-z-index:2;
-
-}
-
-.flip-clock{
-
-display:flex;
-align-items:center;
-gap:10px;
-
-z-index:2;
-
-}
-
-.flip{
-
-width:110px;
-height:150px;
-
-position:relative;
-
-perspective:400px;
-
-}
-
-.flip-number{
-
-position:absolute;
-inset:0;
-
-background:#111827;
-
-border-radius:22px;
-
-display:flex;
-justify-content:center;
-align-items:center;
-
-font-size:90px;
-font-weight:900;
-
-transition:
-transform .18s cubic-bezier(.22,.9,.35,1);
-
-}
-
-.separator{
-
-font-size:70px;
-font-weight:900;
-
-}
-
-.seconds-small{
-
-font-size:42px;
-font-weight:700;
-
-opacity:.7;
-
-width:70px;
-
-text-align:center;
-
-}
-
-/* quake */
-
-.alert{
-
-position:absolute;
-
-left:24px;
-right:24px;
-bottom:24px;
-
-padding:16px;
-
-border-radius:18px;
-
-background:rgba(239,68,68,0.15);
-
-border:1px solid rgba(239,68,68,0.3);
-
-color:#fca5a5;
-
-line-height:1.6;
-
-animation:pulse 2s infinite;
-
-z-index:2;
-
-}
-
-@keyframes pulse{
-
-0%{
-opacity:.7;
-}
-
-50%{
-opacity:1;
-}
-
-100%{
-opacity:.7;
-}
-
-}
-
-/* slides */
-
-.slide{
-
-position:absolute;
-inset:0;
-
-padding:28px;
-
-display:flex;
-flex-direction:column;
-
-transition:
-opacity 1s,
-transform 1s;
-
-}
-
-.hidden{
-
-opacity:0;
-
-transform:translateX(40px);
-
-pointer-events:none;
-
-}
-
-/* weather */
-
-.weather-top{
-
-display:flex;
-justify-content:space-between;
-align-items:center;
-
-margin-bottom:20px;
-
-}
-
-.temp{
-
-font-size:72px;
-font-weight:900;
-
-}
-
-/* white icons */
-
-.icon svg{
-
-width:72px;
-height:72px;
-
-stroke:white;
-fill:none;
-stroke-width:2.2;
-
-stroke-linecap:round;
-stroke-linejoin:round;
-
-}
-
-.weather-small svg{
-
-width:28px;
-height:28px;
-
-stroke:white;
-fill:none;
-stroke-width:2.2;
-
-stroke-linecap:round;
-stroke-linejoin:round;
-
-}
-
-.forecast{
-
-display:flex;
-flex-direction:column;
-gap:10px;
-
-}
-
-.forecast-row{
-
-display:grid;
-
-grid-template-columns:
-1fr 1fr 1fr 1fr;
-
-padding:12px;
-
-background:rgba(255,255,255,0.05);
-
-border-radius:14px;
-
-align-items:center;
-
-font-size:15px;
-
-}
-
-.rain{
-
-opacity:.8;
-
-}
-
-/* news */
-
-.news-list{
-
-display:flex;
-flex-direction:column;
-
-gap:12px;
-
-animation:
-newsScroll 90s linear infinite;
-
-}
-
-@keyframes newsScroll{
-
-0%{
-transform:translateY(0);
-}
-
-100%{
-transform:translateY(-75%);
-}
-
-}
-
-.news-item{
-
-padding:14px;
-
-background:rgba(255,255,255,0.05);
-
-border-radius:16px;
-
-line-height:1.5;
-
-font-size:15px;
-
-}
-
-</style>
-</head>
-
-<body>
-
-<div class="dashboard">
-
-<!-- LEFT -->
-
-<div class="card clock-card">
-
-<div class="analog-clock">
-
-<div class="hand hour-hand"></div>
-<div class="hand minute-hand"></div>
-<div class="hand second-hand"></div>
-
-<div class="clock-center"></div>
-
-</div>
-
-<div class="date" id="date">
-Loading...
-</div>
-
-<div class="flip-clock">
-
-<div class="flip">
-<div class="flip-number" id="hour">00</div>
-</div>
-
-<div class="separator">:</div>
-
-<div class="flip">
-<div class="flip-number" id="minute">00</div>
-</div>
-
-<div class="seconds-small" id="secondsSmall">
-00
-</div>
-
-</div>
-
-<div class="alert" id="quake">
-⚠ 地震情報取得中...
-</div>
-
-</div>
-
-<!-- RIGHT -->
-
-<div class="card">
-
-<!-- weather -->
-
-<div id="weatherSlide" class="slide">
-
-<div class="weather-top">
-
-<div>
-
-<div>Weather</div>
-
-<div class="temp" id="temp">
---°
-</div>
-
-</div>
-
-<div class="icon" id="weatherIcon"></div>
-
-</div>
-
-<div class="forecast" id="forecast">
-読み込み中...
-</div>
-
-</div>
-
-<!-- news -->
-
-<div id="newsSlide" class="slide hidden">
-
-<div class="news-list" id="newsList">
-ニュース取得中...
-</div>
-
-</div>
-
-</div>
-
-</div>
-
-<script>
-
-/* wake lock */
-
-async function enableWakeLock(){
-
-try{
-
-await navigator.wakeLock.request('screen');
-
-}catch(e){}
-
-}
-
-enableWakeLock();
-
-/* location */
-
-let userLat = 35.0116;
-let userLon = 135.7681;
-
-navigator.geolocation.getCurrentPosition(pos=>{
-
-userLat = pos.coords.latitude;
-userLon = pos.coords.longitude;
-
-});
-
-/* white weather icons */
-
-function weatherSVG(type){
-
-if(type==="sun"){
-
-return `
-<svg viewBox="0 0 24 24">
-<circle cx="12" cy="12" r="4"/>
-<path d="M12 2V5"/>
-<path d="M12 19V22"/>
-<path d="M2 12H5"/>
-<path d="M19 12H22"/>
-<path d="M4.9 4.9L7 7"/>
-<path d="M17 17L19.1 19.1"/>
-<path d="M4.9 19.1L7 17"/>
-<path d="M17 7L19.1 4.9"/>
-</svg>
-`;
-
-}
-
-if(type==="rain"){
-
-return `
-<svg viewBox="0 0 24 24">
-<path d="M7 16a4 4 0 1 1 .9-7.9A5 5 0 0 1 17 9a3 3 0 1 1 1 6H7"/>
-<path d="M8 19l-1 2"/>
-<path d="M12 19l-1 2"/>
-<path d="M16 19l-1 2"/>
-</svg>
-`;
-
-}
-
-return `
-<svg viewBox="0 0 24 24">
-<path d="M7 16a4 4 0 1 1 .9-7.9A5 5 0 0 1 17 9a3 3 0 1 1 1 6H7"/>
-</svg>
-`;
-
-}
-
-/* clock */
-
-function animateFlip(id,value){
-
-const el =
-document.getElementById(id);
-
-if(el.textContent !== value){
-
-el.style.transform =
-'rotateX(70deg)';
-
-setTimeout(()=>{
-
-el.textContent = value;
-
-el.style.transform =
-'rotateX(0deg)';
-
-},120);
-
-}
-
-}
-
-function updateClock(){
-
-const now = new Date();
-
-const h =
-String(now.getHours()).padStart(2,'0');
-
-const m =
-String(now.getMinutes()).padStart(2,'0');
-
-const s =
-String(now.getSeconds()).padStart(2,'0');
-
-animateFlip('hour',h);
-animateFlip('minute',m);
-
-document.getElementById('secondsSmall').textContent = s;
-
-document.getElementById('date').textContent =
-`${now.getFullYear()}/${now.getMonth()+1}/${now.getDate()}`;
-
-const secondDeg =
-now.getSeconds()*6;
-
-const minuteDeg =
-now.getMinutes()*6;
-
-const hourDeg =
-(now.getHours()%12)*30 +
-now.getMinutes()*0.5;
-
-document.querySelector('.second-hand').style.transform =
-`rotate(${secondDeg}deg)`;
-
-document.querySelector('.minute-hand').style.transform =
-`rotate(${minuteDeg}deg)`;
-
-document.querySelector('.hour-hand').style.transform =
-`rotate(${hourDeg}deg)`;
-
-}
-
-setInterval(updateClock,1000);
-
-updateClock();
-
-/* weather */
-
-async function loadWeather(){
-
-try{
-
-const res = await fetch(
-`https://api.open-meteo.com/v1/forecast?latitude=${userLat}&longitude=${userLon}&hourly=temperature_2m,precipitation_probability,weathercode&forecast_days=1`
-);
-
-const data = await res.json();
-
-const temps =
-data.hourly.temperature_2m;
-
-const rain =
-data.hourly.precipitation_probability;
-
-const codes =
-data.hourly.weathercode;
-
-const times =
-data.hourly.time;
-
-document.getElementById('temp').textContent =
-Math.round(temps[0]) + '°';
-
-let current='cloud';
-
-if(codes[0]===0) current='sun';
-if(codes[0]>50) current='rain';
-
-document.getElementById('weatherIcon').innerHTML =
-weatherSVG(current);
-
-let html='';
-
-for(let i=0;i<24;i+=3){
-
-const hour =
-new Date(times[i]).getHours();
-
-let icon='cloud';
-
-if(codes[i]===0) icon='sun';
-if(codes[i]>50) icon='rain';
-
-html += `
-
-<div class="forecast-row">
-
-<div>${hour}:00</div>
-
-<div class="weather-small">
-${weatherSVG(icon)}
-</div>
-
-<div>${Math.round(temps[i])}°</div>
-
-<div class="rain">
-☔ ${rain[i]}%
-</div>
-
-</div>
-
-`;
-
-}
-
-document.getElementById('forecast').innerHTML =
-html;
-
-}catch(e){
-
-document.getElementById('forecast').innerHTML =
-'天気取得失敗';
-
-}
-
-}
-
-loadWeather();
-
-/* news */
-
-async function loadNews(){
-
-try{
-
-const rss =
-'https://news.google.com/rss?hl=ja&gl=JP&ceid=JP:ja';
-
-const api =
-'https://api.rss2json.com/v1/api.json?rss_url=' +
-encodeURIComponent(rss);
-
-const res = await fetch(api);
-
-const data = await res.json();
-
-const newsList =
-document.getElementById('newsList');
-
-newsList.innerHTML='';
-
-data.items.slice(0,40).forEach(article=>{
-
-const div =
-document.createElement('div');
-
-div.className='news-item';
-
-div.innerHTML =
-`<b>${article.title}</b>`;
-
-newsList.appendChild(div);
-
-});
-
-}catch(e){
-
-document.getElementById('newsList').innerHTML =
-'<div class="news-item">ニュース取得失敗</div>';
-
-}
-
-}
-
-loadNews();
-
-/* quake */
-
-async function loadQuake(){
-
-try{
-
-const res = await fetch(
-'https://api.p2pquake.net/v2/history?codes=551&limit=50'
-);
-
-const data = await res.json();
-
-const scaleMap = {
-
-10:1,
-20:2,
-30:3,
-40:4,
-45:5,
-50:5,
-55:6,
-60:6,
-70:7
-
-};
-
-/* 24時間以内 */
-
-const now = Date.now();
-
-const recent = data.filter(q=>{
-
-const quakeTime =
-new Date(q.time).getTime();
-
-return (
-now - quakeTime
-) < 86400000;
-
-});
-
-/* 最大震度優先 */
-
-recent.sort((a,b)=>{
-
-return (
-b.earthquake.maxScale -
-a.earthquake.maxScale
-);
-
-});
-
-const target =
-recent.find(q=>
-scaleMap[q.earthquake.maxScale] >= 3
-);
-
-if(target){
-
-const quakeTime =
-new Date(target.time);
-
-const diffMin =
-Math.floor(
-(now - quakeTime.getTime()) / 60000
-);
-
-const scale =
-scaleMap[target.earthquake.maxScale];
-
-const magnitude =
-target.earthquake.hypocenter.magnitude;
-
-document.getElementById('quake').innerHTML =
-
-`⚠ ${diffMin}分前<br>
-
-${target.earthquake.hypocenter.name}<br>
-
-震度 ${scale}<br>
-
-M${magnitude}`;
-
-}else{
-
-document.getElementById('quake').innerHTML =
-'⚠ 24時間以内に震度3以上の地震なし';
-
-}
-
-}catch(e){
-
-document.getElementById('quake').innerHTML =
-'⚠ 地震情報取得失敗';
-
-}
-
-}
-
-loadQuake();
-
-/* refresh */
-
-setInterval(loadWeather,600000);
-setInterval(loadNews,600000);
-setInterval(loadQuake,600000);
-
-/* slide switch */
-
-const weatherSlide =
-document.getElementById('weatherSlide');
-
-const newsSlide =
-document.getElementById('newsSlide');
-
-let weatherVisible = true;
-
-setInterval(()=>{
-
-if(weatherVisible){
-
-weatherSlide.classList.add('hidden');
-newsSlide.classList.remove('hidden');
-
-}else{
-
-newsSlide.classList.add('hidden');
-weatherSlide.classList.remove('hidden');
-
-}
-
-weatherVisible = !weatherVisible;
-
-},30000);
-
-</script>
-
-</body>
-</html>
