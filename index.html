@@ -17,33 +17,25 @@ function getWeatherMock() {
   };
 }
 
-// --- REAL EARTHQUAKE API (USGS) ---
 async function fetchEarthquakes() {
-  const res = await fetch(
-    "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&minmagnitude=3&orderby=time&limit=10"
-  );
-  const data = await res.json();
+  try {
+    const res = await fetch(
+      "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&minmagnitude=3&orderby=time&limit=10"
+    );
 
-  const now = Date.now();
+    const data = await res.json();
 
-  return data.features.map((f, idx) => {
-    const props = f.properties;
-    const time = props.time;
-
-    const magnitude = props.mag;
-    const place = props.place;
-
-    // simple pseudo-intensity (since no JMA shindo in USGS)
-    const intensity = Math.round(magnitude);
-
-    return {
+    return data.features.map((f, idx) => ({
       id: idx,
-      place,
-      magnitude,
-      intensity,
-      time,
-    };
-  });
+      place: f.properties.place,
+      magnitude: f.properties.mag,
+      intensity: Math.round(f.properties.mag),
+      time: f.properties.time,
+    }));
+  } catch (e) {
+    console.log("quake fetch error", e);
+    return [];
+  }
 }
 
 function getMinutesAgo(time) {
@@ -68,42 +60,42 @@ function WeatherIcon({ condition }) {
 }
 
 function EarthquakeCard({ data }) {
-  if (!data || data.intensity < 3) return null;
-
   return (
     <Card className="bg-black text-white border-red-500">
       <CardContent className="p-4">
         <div className="text-red-400 font-bold">地震速報</div>
 
-        <div className="text-sm mt-1">
-          {getMinutesAgo(data.time)}分前に {data.place} で発生
-        </div>
-
-        <div className="text-lg mt-2">
-          M{data.magnitude} / 震度{data.intensity}
-        </div>
+        {data ? (
+          <>
+            <div className="text-sm mt-1">
+              {getMinutesAgo(data.time)}分前に {data.place} で発生
+            </div>
+            <div className="text-lg mt-2">
+              M{data.magnitude} / 震度{data.intensity}
+            </div>
+          </>
+        ) : (
+          <div className="text-sm mt-2 opacity-70">
+            現在、震度3以上の地震はありません
+          </div>
+        )}
       </CardContent>
     </Card>
   );
 }
 
 export default function WeatherApp() {
-  const [weather, setWeather] = useState(getWeatherMock());
+  const [weather] = useState(getWeatherMock());
   const [quakes, setQuakes] = useState([]);
 
   useEffect(() => {
     async function load() {
-      const q = await fetchEarthquakes();
-      setQuakes(q);
+      const data = await fetchEarthquakes();
+      setQuakes(data);
     }
 
     load();
-
-    const interval = setInterval(() => {
-      setWeather(getWeatherMock());
-      load();
-    }, 60000);
-
+    const interval = setInterval(load, 60000);
     return () => clearInterval(interval);
   }, []);
 
@@ -127,7 +119,7 @@ export default function WeatherApp() {
           </CardContent>
         </Card>
 
-        {latestQuake && <EarthquakeCard data={latestQuake} />}
+        <EarthquakeCard data={latestQuake} />
 
         <Card className="bg-white/5 border-white/10">
           <CardContent className="p-3 text-sm opacity-80">
