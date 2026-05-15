@@ -35,6 +35,8 @@ align-items:center;
 position:relative;
 }
 
+/* background */
+
 body::before{
 
 content:'';
@@ -70,6 +72,8 @@ transform:translate(0,0) scale(1);
 }
 
 }
+
+/* layout */
 
 .dashboard{
 
@@ -115,7 +119,7 @@ position:relative;
 
 }
 
-/* CLOCK */
+/* clock */
 
 .clock-card{
 
@@ -257,8 +261,6 @@ align-items:center;
 font-size:90px;
 font-weight:900;
 
-transform-origin:center top;
-
 transition:
 transform .18s cubic-bezier(.22,.9,.35,1);
 
@@ -284,7 +286,7 @@ text-align:center;
 
 }
 
-/* ALERT */
+/* quake */
 
 .alert{
 
@@ -328,41 +330,7 @@ opacity:.7;
 
 }
 
-.quake-warning{
-
-animation:
-quakeFlash .6s infinite,
-shake .2s infinite;
-
-}
-
-@keyframes quakeFlash{
-
-0%{
-background:#220000;
-}
-
-50%{
-background:#660000;
-}
-
-100%{
-background:#220000;
-}
-
-}
-
-@keyframes shake{
-
-0%{transform:translate(0,0)}
-25%{transform:translate(2px,-2px)}
-50%{transform:translate(-2px,2px)}
-75%{transform:translate(2px,2px)}
-100%{transform:translate(0,0)}
-
-}
-
-/* SLIDES */
+/* slides */
 
 .slide{
 
@@ -390,7 +358,7 @@ pointer-events:none;
 
 }
 
-/* WEATHER */
+/* weather */
 
 .weather-top{
 
@@ -409,14 +377,33 @@ font-weight:900;
 
 }
 
-.big-icon svg{
+/* white icons */
+
+.icon svg{
 
 width:72px;
 height:72px;
 
 stroke:white;
 fill:none;
-stroke-width:2.5;
+stroke-width:2.2;
+
+stroke-linecap:round;
+stroke-linejoin:round;
+
+}
+
+.weather-small svg{
+
+width:28px;
+height:28px;
+
+stroke:white;
+fill:none;
+stroke-width:2.2;
+
+stroke-linecap:round;
+stroke-linejoin:round;
 
 }
 
@@ -447,39 +434,13 @@ font-size:15px;
 
 }
 
-.weather-small svg{
+.rain{
 
-width:28px;
-height:28px;
-
-stroke:white;
-fill:none;
-stroke-width:2.5;
+opacity:.8;
 
 }
 
-.rain-wrap{
-
-display:flex;
-align-items:center;
-gap:6px;
-
-}
-
-.rain-wrap svg{
-
-width:18px;
-height:18px;
-
-stroke:white;
-fill:none;
-stroke-width:2;
-
-opacity:.9;
-
-}
-
-/* NEWS */
+/* news */
 
 .news-list{
 
@@ -541,9 +502,7 @@ font-size:15px;
 </div>
 
 <div class="date" id="date">
-
 Loading...
-
 </div>
 
 <div class="flip-clock">
@@ -574,6 +533,8 @@ Loading...
 
 <div class="card">
 
+<!-- weather -->
+
 <div id="weatherSlide" class="slide">
 
 <div class="weather-top">
@@ -588,7 +549,7 @@ Loading...
 
 </div>
 
-<div class="big-icon" id="weatherIcon"></div>
+<div class="icon" id="weatherIcon"></div>
 
 </div>
 
@@ -597,6 +558,8 @@ Loading...
 </div>
 
 </div>
+
+<!-- news -->
 
 <div id="newsSlide" class="slide hidden">
 
@@ -612,7 +575,21 @@ Loading...
 
 <script>
 
-/* USER LOCATION */
+/* wake lock */
+
+async function enableWakeLock(){
+
+try{
+
+await navigator.wakeLock.request('screen');
+
+}catch(e){}
+
+}
+
+enableWakeLock();
+
+/* location */
 
 let userLat = 35.0116;
 let userLon = 135.7681;
@@ -624,28 +601,7 @@ userLon = pos.coords.longitude;
 
 });
 
-/* WAKE LOCK */
-
-let wakeLock = null;
-
-async function enableWakeLock(){
-
-try{
-
-wakeLock =
-await navigator.wakeLock.request('screen');
-
-}catch(err){
-
-console.log(err);
-
-}
-
-}
-
-enableWakeLock();
-
-/* WEATHER ICON */
+/* white weather icons */
 
 function weatherSVG(type){
 
@@ -658,6 +614,10 @@ return `
 <path d="M12 19V22"/>
 <path d="M2 12H5"/>
 <path d="M19 12H22"/>
+<path d="M4.9 4.9L7 7"/>
+<path d="M17 17L19.1 19.1"/>
+<path d="M4.9 19.1L7 17"/>
+<path d="M17 7L19.1 4.9"/>
 </svg>
 `;
 
@@ -667,10 +627,10 @@ if(type==="rain"){
 
 return `
 <svg viewBox="0 0 24 24">
-<path d="M6 16a4 4 0 1 1 .9-7.9A5 5 0 0 1 17 9a3 3 0 1 1 1 5.8"/>
-<path d="M8 19l-1 3"/>
-<path d="M12 19l-1 3"/>
-<path d="M16 19l-1 3"/>
+<path d="M7 16a4 4 0 1 1 .9-7.9A5 5 0 0 1 17 9a3 3 0 1 1 1 6H7"/>
+<path d="M8 19l-1 2"/>
+<path d="M12 19l-1 2"/>
+<path d="M16 19l-1 2"/>
 </svg>
 `;
 
@@ -678,13 +638,13 @@ return `
 
 return `
 <svg viewBox="0 0 24 24">
-<path d="M6 16a4 4 0 1 1 .9-7.9A5 5 0 0 1 17 9a3 3 0 1 1 1 5.8H6z"/>
+<path d="M7 16a4 4 0 1 1 .9-7.9A5 5 0 0 1 17 9a3 3 0 1 1 1 6H7"/>
 </svg>
 `;
 
 }
 
-/* CLOCK */
+/* clock */
 
 function animateFlip(id,value){
 
@@ -728,7 +688,6 @@ animateFlip('minute',m);
 document.getElementById('secondsSmall').textContent = s;
 
 document.getElementById('date').textContent =
-
 `${now.getFullYear()}/${now.getMonth()+1}/${now.getDate()}`;
 
 const secondDeg =
@@ -756,16 +715,14 @@ setInterval(updateClock,1000);
 
 updateClock();
 
-/* WEATHER */
+/* weather */
 
 async function loadWeather(){
 
 try{
 
 const res = await fetch(
-
 `https://api.open-meteo.com/v1/forecast?latitude=${userLat}&longitude=${userLon}&hourly=temperature_2m,precipitation_probability,weathercode&forecast_days=1`
-
 );
 
 const data = await res.json();
@@ -817,7 +774,7 @@ ${weatherSVG(icon)}
 
 <div>${Math.round(temps[i])}°</div>
 
-<div class="rain-wrap">
+<div class="rain">
 ☔ ${rain[i]}%
 </div>
 
@@ -841,7 +798,7 @@ document.getElementById('forecast').innerHTML =
 
 loadWeather();
 
-/* NEWS */
+/* news */
 
 async function loadNews(){
 
@@ -888,151 +845,93 @@ document.getElementById('newsList').innerHTML =
 
 loadNews();
 
-/* DISTANCE */
-
-function distance(lat1,lon1,lat2,lon2){
-
-const R = 6371;
-
-const dLat =
-(lat2-lat1) * Math.PI/180;
-
-const dLon =
-(lon2-lon1) * Math.PI/180;
-
-const a =
-
-Math.sin(dLat/2) *
-Math.sin(dLat/2)
-
-+
-
-Math.cos(lat1*Math.PI/180) *
-Math.cos(lat2*Math.PI/180) *
-
-Math.sin(dLon/2) *
-Math.sin(dLon/2);
-
-const c =
-2 * Math.atan2(
-Math.sqrt(a),
-Math.sqrt(1-a)
-);
-
-return R * c;
-
-}
-
-/* QUAKE */
+/* quake */
 
 async function loadQuake(){
 
 try{
 
 const res = await fetch(
-'https://api.p2pquake.net/v2/history?codes=551&limit=1'
+'https://api.p2pquake.net/v2/history?codes=551&limit=50'
 );
 
 const data = await res.json();
 
 const scaleMap = {
 
-10:'1',
-20:'2',
-30:'3',
-40:'4',
-45:'5弱',
-50:'5強',
-55:'6弱',
-60:'6強',
-70:'7'
+10:1,
+20:2,
+30:3,
+40:4,
+45:5,
+50:5,
+55:6,
+60:6,
+70:7
 
 };
 
-if(data.length > 0){
+/* 24時間以内 */
 
-const q = data[0];
+const now = Date.now();
+
+const recent = data.filter(q=>{
+
+const quakeTime =
+new Date(q.time).getTime();
+
+return (
+now - quakeTime
+) < 86400000;
+
+});
+
+/* 最大震度優先 */
+
+recent.sort((a,b)=>{
+
+return (
+b.earthquake.maxScale -
+a.earthquake.maxScale
+);
+
+});
+
+const target =
+recent.find(q=>
+scaleMap[q.earthquake.maxScale] >= 3
+);
+
+if(target){
+
+const quakeTime =
+new Date(target.time);
+
+const diffMin =
+Math.floor(
+(now - quakeTime.getTime()) / 60000
+);
 
 const scale =
-scaleMap[q.earthquake.maxScale] || '?';
+scaleMap[target.earthquake.maxScale];
 
-const quakeDate =
-new Date(q.time);
+const magnitude =
+target.earthquake.hypocenter.magnitude;
 
-let diffMin = 0;
+document.getElementById('quake').innerHTML =
 
-if(!isNaN(quakeDate.getTime())){
+`⚠ ${diffMin}分前<br>
 
-diffMin =
-Math.floor(
-(Date.now()-quakeDate.getTime()) / 60000
-);
+${target.earthquake.hypocenter.name}<br>
 
-}
+震度 ${scale}<br>
 
-const eqLat =
-q.earthquake.hypocenter.latitude;
-
-const eqLon =
-q.earthquake.hypocenter.longitude;
-
-const km =
-distance(
-userLat,
-userLon,
-eqLat,
-eqLon
-);
-
-const sec =
-Math.max(
-1,
-Math.floor(km/4)
-);
-
-let expectedNum = 1;
-
-if(scale==='7') expectedNum=5;
-else if(scale==='6強') expectedNum=5;
-else if(scale==='6弱') expectedNum=4;
-else if(scale==='5強') expectedNum=4;
-else if(scale==='5弱') expectedNum=3;
-else if(scale==='4') expectedNum=2;
-
-let html =
-
-`⚠ ${q.earthquake.hypocenter.name}<br>
-最大震度 ${scale}<br>
-${diffMin}分前`;
-
-if(expectedNum >= 3){
-
-html += `
-
-<br><br>
-
-🚨 現在地に揺れ予想<br>
-
-予想震度 ${expectedNum}<br>
-
-到達予想 ${sec}秒後
-
-`;
-
-document.body.classList.add(
-'quake-warning'
-);
+M${magnitude}`;
 
 }else{
 
-document.body.classList.remove(
-'quake-warning'
-);
-
-}
-
 document.getElementById('quake').innerHTML =
-html;
+'⚠ 24時間以内に震度3以上の地震なし';
 
 }
 
@@ -1047,13 +946,13 @@ document.getElementById('quake').innerHTML =
 
 loadQuake();
 
-/* REFRESH */
+/* refresh */
 
 setInterval(loadWeather,600000);
 setInterval(loadNews,600000);
 setInterval(loadQuake,600000);
 
-/* SLIDE */
+/* slide switch */
 
 const weatherSlide =
 document.getElementById('weatherSlide');
