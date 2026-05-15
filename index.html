@@ -1,6 +1,13 @@
 import { useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { Cloud, CloudRain, Sun, CloudSnow, CloudFog } from "lucide-react";
+import {
+  Cloud,
+  CloudRain,
+  Sun,
+  CloudSnow,
+  CloudFog,
+  Droplets,
+} from "lucide-react";
 
 function getWeatherMock() {
   return {
@@ -10,25 +17,33 @@ function getWeatherMock() {
   };
 }
 
-function getEarthquakesMock() {
+// --- REAL EARTHQUAKE API (USGS) ---
+async function fetchEarthquakes() {
+  const res = await fetch(
+    "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&minmagnitude=3&orderby=time&limit=10"
+  );
+  const data = await res.json();
+
   const now = Date.now();
 
-  return [
-    {
-      id: 1,
-      place: "京都府南部",
-      magnitude: 4.2,
-      intensity: 3,
-      time: now - 12 * 60 * 1000,
-    },
-    {
-      id: 2,
-      place: "大阪北部",
-      magnitude: 3.5,
-      intensity: 2,
-      time: now - 50 * 60 * 1000,
-    },
-  ];
+  return data.features.map((f, idx) => {
+    const props = f.properties;
+    const time = props.time;
+
+    const magnitude = props.mag;
+    const place = props.place;
+
+    // simple pseudo-intensity (since no JMA shindo in USGS)
+    const intensity = Math.round(magnitude);
+
+    return {
+      id: idx,
+      place,
+      magnitude,
+      intensity,
+      time,
+    };
+  });
 }
 
 function getMinutesAgo(time) {
@@ -59,9 +74,11 @@ function EarthquakeCard({ data }) {
     <Card className="bg-black text-white border-red-500">
       <CardContent className="p-4">
         <div className="text-red-400 font-bold">地震速報</div>
+
         <div className="text-sm mt-1">
           {getMinutesAgo(data.time)}分前に {data.place} で発生
         </div>
+
         <div className="text-lg mt-2">
           M{data.magnitude} / 震度{data.intensity}
         </div>
@@ -72,12 +89,19 @@ function EarthquakeCard({ data }) {
 
 export default function WeatherApp() {
   const [weather, setWeather] = useState(getWeatherMock());
-  const [quakes, setQuakes] = useState(getEarthquakesMock());
+  const [quakes, setQuakes] = useState([]);
 
   useEffect(() => {
+    async function load() {
+      const q = await fetchEarthquakes();
+      setQuakes(q);
+    }
+
+    load();
+
     const interval = setInterval(() => {
       setWeather(getWeatherMock());
-      setQuakes(getEarthquakesMock());
+      load();
     }, 60000);
 
     return () => clearInterval(interval);
@@ -92,10 +116,13 @@ export default function WeatherApp() {
           <CardContent className="p-4 flex items-center justify-between">
             <div>
               <div className="text-3xl font-bold">{weather.temp}°C</div>
-              <div className="text-sm opacity-80">
+
+              <div className="text-sm opacity-80 flex items-center gap-2 mt-1">
+                <Droplets className="w-4 h-4 text-white" />
                 降水確率 {weather.precipitation}%
               </div>
             </div>
+
             <WeatherIcon condition={weather.condition} />
           </CardContent>
         </Card>
