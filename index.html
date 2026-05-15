@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Cloud, CloudRain, Sun, CloudSnow, CloudFog } from "lucide-react";
 
+// --- mock fetch functions (replace with real API later) ---
 function getWeatherMock() {
   return {
     temp: 18,
@@ -11,30 +12,25 @@ function getWeatherMock() {
 }
 
 function getEarthquakesMock() {
-  const now = Date.now();
-
   return [
     {
       id: 1,
       place: "京都府南部",
       magnitude: 4.2,
       intensity: 3,
-      time: now - 12 * 60 * 1000,
+      minutesAgo: 12,
     },
     {
       id: 2,
       place: "大阪北部",
       magnitude: 3.5,
       intensity: 2,
-      time: now - 50 * 60 * 1000,
+      minutesAgo: 50,
     },
   ];
 }
 
-function getMinutesAgo(time) {
-  return Math.floor((Date.now() - time) / 60000);
-}
-
+// --- icon mapper (white, simple style) ---
 function WeatherIcon({ condition }) {
   const base = "w-10 h-10 text-white";
 
@@ -60,7 +56,7 @@ function EarthquakeCard({ data }) {
       <CardContent className="p-4">
         <div className="text-red-400 font-bold">地震速報</div>
         <div className="text-sm mt-1">
-          {getMinutesAgo(data.time)}分前に {data.place} で発生
+          {data.minutesAgo}分前に {data.place} で発生
         </div>
         <div className="text-lg mt-2">
           M{data.magnitude} / 震度{data.intensity}
@@ -75,6 +71,7 @@ export default function WeatherApp() {
   const [quakes, setQuakes] = useState(getEarthquakesMock());
 
   useEffect(() => {
+    // TODO: replace with real API
     const interval = setInterval(() => {
       setWeather(getWeatherMock());
       setQuakes(getEarthquakesMock());
@@ -88,20 +85,21 @@ export default function WeatherApp() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-900 to-black text-white p-4">
       <div className="max-w-md mx-auto space-y-4">
+        {/* Weather Card */}
         <Card className="bg-white/10 backdrop-blur border-white/20">
           <CardContent className="p-4 flex items-center justify-between">
             <div>
               <div className="text-3xl font-bold">{weather.temp}°C</div>
-              <div className="text-sm opacity-80">
-                降水確率 {weather.precipitation}%
-              </div>
+              <div className="text-sm opacity-80">降水確率 {weather.precipitation}%</div>
             </div>
             <WeatherIcon condition={weather.condition} />
           </CardContent>
         </Card>
 
-        {latestQuake && <EarthquakeCard data={latestQuake} />}
+        {/* Earthquake */}
+        <EarthquakeCard data={latestQuake} />
 
+        {/* optional mini forecast */}
         <Card className="bg-white/5 border-white/10">
           <CardContent className="p-3 text-sm opacity-80">
             ※ 震度3以上のみ表示
