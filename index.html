@@ -115,7 +115,7 @@ position:relative;
 
 }
 
-/* clock */
+/* CLOCK */
 
 .clock-card{
 
@@ -284,7 +284,7 @@ text-align:center;
 
 }
 
-/* quake */
+/* ALERT */
 
 .alert{
 
@@ -362,7 +362,7 @@ background:#220000;
 
 }
 
-/* slides */
+/* SLIDES */
 
 .slide{
 
@@ -390,7 +390,7 @@ pointer-events:none;
 
 }
 
-/* weather */
+/* WEATHER */
 
 .weather-top{
 
@@ -479,7 +479,7 @@ opacity:.9;
 
 }
 
-/* news */
+/* NEWS */
 
 .news-list{
 
@@ -559,17 +559,13 @@ Loading...
 </div>
 
 <div class="seconds-small" id="secondsSmall">
-
 00
-
 </div>
 
 </div>
 
 <div class="alert" id="quake">
-
 ⚠ 地震情報取得中...
-
 </div>
 
 </div>
@@ -584,9 +580,7 @@ Loading...
 
 <div>
 
-<div>
-Kyoto
-</div>
+<div>Weather</div>
 
 <div class="temp" id="temp">
 --°
@@ -599,9 +593,7 @@ Kyoto
 </div>
 
 <div class="forecast" id="forecast">
-
 読み込み中...
-
 </div>
 
 </div>
@@ -609,9 +601,7 @@ Kyoto
 <div id="newsSlide" class="slide hidden">
 
 <div class="news-list" id="newsList">
-
 ニュース取得中...
-
 </div>
 
 </div>
@@ -622,7 +612,19 @@ Kyoto
 
 <script>
 
-/* wake lock */
+/* USER LOCATION */
+
+let userLat = 35.0116;
+let userLon = 135.7681;
+
+navigator.geolocation.getCurrentPosition(pos=>{
+
+userLat = pos.coords.latitude;
+userLon = pos.coords.longitude;
+
+});
+
+/* WAKE LOCK */
 
 let wakeLock = null;
 
@@ -643,20 +645,7 @@ console.log(err);
 
 enableWakeLock();
 
-document.addEventListener(
-'visibilitychange',
-()=>{
-
-if(document.visibilityState==='visible'){
-
-enableWakeLock();
-
-}
-
-}
-);
-
-/* icons */
+/* WEATHER ICON */
 
 function weatherSVG(type){
 
@@ -695,7 +684,7 @@ return `
 
 }
 
-/* flip */
+/* CLOCK */
 
 function animateFlip(id,value){
 
@@ -720,8 +709,6 @@ el.style.transform =
 
 }
 
-/* clock */
-
 function updateClock(){
 
 const now = new Date();
@@ -740,28 +727,19 @@ animateFlip('minute',m);
 
 document.getElementById('secondsSmall').textContent = s;
 
-const days = [
-'Sunday',
-'Monday',
-'Tuesday',
-'Wednesday',
-'Thursday',
-'Friday',
-'Saturday'
-];
-
 document.getElementById('date').textContent =
-`${days[now.getDay()]} • ${now.getFullYear()}/${now.getMonth()+1}/${now.getDate()}`;
+
+`${now.getFullYear()}/${now.getMonth()+1}/${now.getDate()}`;
 
 const secondDeg =
-now.getSeconds() * 6;
+now.getSeconds()*6;
 
 const minuteDeg =
-now.getMinutes() * 6;
+now.getMinutes()*6;
 
 const hourDeg =
-(now.getHours()%12) * 30 +
-now.getMinutes() * 0.5;
+(now.getHours()%12)*30 +
+now.getMinutes()*0.5;
 
 document.querySelector('.second-hand').style.transform =
 `rotate(${secondDeg}deg)`;
@@ -778,14 +756,16 @@ setInterval(updateClock,1000);
 
 updateClock();
 
-/* weather */
+/* WEATHER */
 
 async function loadWeather(){
 
 try{
 
 const res = await fetch(
-'https://api.open-meteo.com/v1/forecast?latitude=35.0116&longitude=135.7681&hourly=temperature_2m,precipitation_probability,weathercode&forecast_days=1'
+
+`https://api.open-meteo.com/v1/forecast?latitude=${userLat}&longitude=${userLon}&hourly=temperature_2m,precipitation_probability,weathercode&forecast_days=1`
+
 );
 
 const data = await res.json();
@@ -838,16 +818,7 @@ ${weatherSVG(icon)}
 <div>${Math.round(temps[i])}°</div>
 
 <div class="rain-wrap">
-
-<svg viewBox="0 0 24 24">
-<path d="M12 3
-C12 3 7 10 7 13
-A5 5 0 0 0 17 13
-C17 10 12 3 12 3Z"/>
-</svg>
-
-${rain[i]}%
-
+☔ ${rain[i]}%
 </div>
 
 </div>
@@ -870,7 +841,7 @@ document.getElementById('forecast').innerHTML =
 
 loadWeather();
 
-/* news */
+/* NEWS */
 
 async function loadNews(){
 
@@ -899,9 +870,8 @@ document.createElement('div');
 
 div.className='news-item';
 
-div.innerHTML = `
-<b>${article.title}</b>
-`;
+div.innerHTML =
+`<b>${article.title}</b>`;
 
 newsList.appendChild(div);
 
@@ -918,7 +888,42 @@ document.getElementById('newsList').innerHTML =
 
 loadNews();
 
-/* quake */
+/* DISTANCE */
+
+function distance(lat1,lon1,lat2,lon2){
+
+const R = 6371;
+
+const dLat =
+(lat2-lat1) * Math.PI/180;
+
+const dLon =
+(lon2-lon1) * Math.PI/180;
+
+const a =
+
+Math.sin(dLat/2) *
+Math.sin(dLat/2)
+
++
+
+Math.cos(lat1*Math.PI/180) *
+Math.cos(lat2*Math.PI/180) *
+
+Math.sin(dLon/2) *
+Math.sin(dLon/2);
+
+const c =
+2 * Math.atan2(
+Math.sqrt(a),
+Math.sqrt(1-a)
+);
+
+return R * c;
+
+}
+
+/* QUAKE */
 
 async function loadQuake(){
 
@@ -944,23 +949,26 @@ const scaleMap = {
 
 };
 
-if(data.length>0){
+if(data.length > 0){
 
 const q = data[0];
 
 const scale =
 scaleMap[q.earthquake.maxScale] || '?';
 
-const quakeTime =
+const quakeDate =
 new Date(q.time);
 
-const diffMin =
+let diffMin = 0;
+
+if(!isNaN(quakeDate.getTime())){
+
+diffMin =
 Math.floor(
-(Date.now()-quakeTime.getTime())/60000
+(Date.now()-quakeDate.getTime()) / 60000
 );
 
-const kyotoLat = 35.0116;
-const kyotoLon = 135.7681;
+}
 
 const eqLat =
 q.earthquake.hypocenter.latitude;
@@ -968,63 +976,48 @@ q.earthquake.hypocenter.latitude;
 const eqLon =
 q.earthquake.hypocenter.longitude;
 
-function distance(lat1,lon1,lat2,lon2){
-
-const R = 6371;
-
-const dLat =
-(lat2-lat1) * Math.PI/180;
-
-const dLon =
-(lon2-lon1) * Math.PI/180;
-
-const a =
-Math.sin(dLat/2) * Math.sin(dLat/2)
-+
-Math.cos(lat1*Math.PI/180)
-*
-Math.cos(lat2*Math.PI/180)
-*
-Math.sin(dLon/2)
-*
-Math.sin(dLon/2);
-
-const c =
-2 * Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
-
-return R * c;
-
-}
-
 const km =
 distance(
-kyotoLat,
-kyotoLon,
+userLat,
+userLon,
 eqLat,
 eqLon
 );
 
 const sec =
-Math.floor(km / 4);
+Math.max(
+1,
+Math.floor(km/4)
+);
 
-let expected='震度1';
+let expectedNum = 1;
 
-if(scale==='7') expected='震度5強';
-else if(scale==='6強') expected='震度5弱';
-else if(scale==='6弱') expected='震度4';
-else if(scale==='5強') expected='震度4';
-else if(scale==='5弱') expected='震度3';
-else if(scale==='4') expected='震度2';
+if(scale==='7') expectedNum=5;
+else if(scale==='6強') expectedNum=5;
+else if(scale==='6弱') expectedNum=4;
+else if(scale==='5強') expectedNum=4;
+else if(scale==='5弱') expectedNum=3;
+else if(scale==='4') expectedNum=2;
 
-document.getElementById('quake').innerHTML =
+let html =
 
 `⚠ ${q.earthquake.hypocenter.name}<br>
 最大震度 ${scale}<br>
-${diffMin}分前<br>
-京都到達予想 ${sec}秒<br>
-京都予想 ${expected}`;
+${diffMin}分前`;
 
-if(q.earthquake.maxScale >= 45){
+if(expectedNum >= 3){
+
+html += `
+
+<br><br>
+
+🚨 現在地に揺れ予想<br>
+
+予想震度 ${expectedNum}<br>
+
+到達予想 ${sec}秒後
+
+`;
 
 document.body.classList.add(
 'quake-warning'
@@ -1037,6 +1030,9 @@ document.body.classList.remove(
 );
 
 }
+
+document.getElementById('quake').innerHTML =
+html;
 
 }
 
@@ -1051,13 +1047,13 @@ document.getElementById('quake').innerHTML =
 
 loadQuake();
 
-/* refresh */
+/* REFRESH */
 
 setInterval(loadWeather,600000);
 setInterval(loadNews,600000);
 setInterval(loadQuake,600000);
 
-/* slide */
+/* SLIDE */
 
 const weatherSlide =
 document.getElementById('weatherSlide');
