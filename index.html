@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
@@ -20,13 +20,12 @@ box-sizing:border-box;
 font-family:'Inter',sans-serif;
 }
 
-html,
-body{
+html,body{
 width:100%;
 height:100%;
 overflow:hidden;
 background:#000;
-color:white;
+color:#fff;
 }
 
 body{
@@ -36,7 +35,7 @@ align-items:center;
 position:relative;
 }
 
-/* animated background */
+/* background */
 
 body::before{
 
@@ -86,7 +85,6 @@ width:min(96vw,1600px);
 aspect-ratio:16/9;
 
 display:grid;
-
 grid-template-columns:2fr 1fr;
 
 gap:20px;
@@ -102,6 +100,8 @@ backdrop-filter:blur(40px);
 overflow:hidden;
 
 }
+
+/* cards */
 
 .card{
 
@@ -126,11 +126,13 @@ position:relative;
 .clock-card{
 
 display:flex;
-flex-direction:column;
 justify-content:center;
 align-items:center;
+flex-direction:column;
 
 }
+
+/* analog */
 
 .analog-clock{
 
@@ -141,7 +143,7 @@ height:700px;
 
 border-radius:50%;
 
-border:2px solid rgba(255,255,255,0.05);
+border:2px solid rgba(255,255,255,0.04);
 
 opacity:.12;
 
@@ -197,8 +199,7 @@ background:#60a5fa;
 
 margin-left:-1px;
 
-box-shadow:
-0 0 20px #60a5fa;
+box-shadow:0 0 20px #60a5fa;
 
 }
 
@@ -212,23 +213,6 @@ border-radius:50%;
 background:white;
 
 position:absolute;
-
-}
-
-/* top */
-
-.top-bar{
-
-position:absolute;
-
-top:20px;
-right:24px;
-
-font-size:18px;
-
-opacity:.8;
-
-z-index:2;
 
 }
 
@@ -246,16 +230,13 @@ z-index:2;
 
 }
 
-/* flip clock */
+/* flip */
 
 .flip-clock{
 
 display:flex;
 align-items:center;
-
 gap:10px;
-
-position:relative;
 
 z-index:2;
 
@@ -275,7 +256,6 @@ perspective:400px;
 .flip-number{
 
 position:absolute;
-
 inset:0;
 
 background:#111827;
@@ -288,9 +268,6 @@ align-items:center;
 
 font-size:90px;
 font-weight:900;
-
-box-shadow:
-0 10px 30px rgba(0,0,0,.5);
 
 transform-origin:center top;
 
@@ -309,7 +286,6 @@ font-weight:900;
 .seconds-small{
 
 font-size:42px;
-
 font-weight:700;
 
 opacity:.7;
@@ -403,7 +379,6 @@ background:#220000;
 .slide{
 
 position:absolute;
-
 inset:0;
 
 padding:28px;
@@ -442,7 +417,6 @@ margin-bottom:20px;
 .temp{
 
 font-size:72px;
-
 font-weight:900;
 
 }
@@ -464,7 +438,6 @@ stroke-width:2.5;
 
 display:flex;
 flex-direction:column;
-
 gap:10px;
 
 }
@@ -530,7 +503,7 @@ flex-direction:column;
 gap:12px;
 
 animation:
-newsScroll 55s linear infinite;
+newsScroll 90s linear infinite;
 
 }
 
@@ -603,27 +576,17 @@ height:450px;
 
 <div class="dashboard">
 
+<!-- LEFT -->
+
 <div class="card clock-card">
 
 <div class="analog-clock">
 
 <div class="hand hour-hand"></div>
-
 <div class="hand minute-hand"></div>
-
 <div class="hand second-hand"></div>
 
 <div class="clock-center"></div>
-
-</div>
-
-<div class="top-bar">
-
-<div id="locationText">
-
-📍 Loading...
-
-</div>
 
 </div>
 
@@ -661,7 +624,11 @@ Loading...
 
 </div>
 
+<!-- RIGHT -->
+
 <div class="card">
+
+<!-- weather -->
 
 <div id="weatherSlide" class="slide">
 
@@ -670,21 +637,16 @@ Loading...
 <div>
 
 <div>
-
 Kyoto
-
 </div>
 
 <div class="temp" id="temp">
-
 --°
-
 </div>
 
 </div>
 
 <div class="big-icon" id="weatherIcon">
-
 </div>
 
 </div>
@@ -696,6 +658,8 @@ Kyoto
 </div>
 
 </div>
+
+<!-- news -->
 
 <div id="newsSlide" class="slide hidden">
 
@@ -988,7 +952,7 @@ document.getElementById('newsList');
 
 newsList.innerHTML='';
 
-data.items.slice(0,20).forEach(article=>{
+data.items.slice(0,40).forEach(article=>{
 
 const div =
 document.createElement('div');
@@ -1049,10 +1013,6 @@ const q = data[0];
 const scale =
 scaleMap[q.earthquake.maxScale] || '?';
 
-let diffText='';
-
-if(q.time){
-
 const quakeTime =
 new Date(q.time);
 
@@ -1061,20 +1021,74 @@ Math.floor(
 (Date.now()-quakeTime.getTime())/60000
 );
 
-if(!isNaN(diffMin)){
+const kyotoLat = 35.0116;
+const kyotoLon = 135.7681;
 
-diffText =
-`${diffMin}分前`;
+const eqLat =
+q.earthquake.hypocenter.latitude;
+
+const eqLon =
+q.earthquake.hypocenter.longitude;
+
+function distance(lat1,lon1,lat2,lon2){
+
+const R = 6371;
+
+const dLat =
+(lat2-lat1) * Math.PI/180;
+
+const dLon =
+(lon2-lon1) * Math.PI/180;
+
+const a =
+Math.sin(dLat/2) * Math.sin(dLat/2)
++
+Math.cos(lat1*Math.PI/180)
+*
+Math.cos(lat2*Math.PI/180)
+*
+Math.sin(dLon/2)
+*
+Math.sin(dLon/2);
+
+const c =
+2 * Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+
+return R * c;
 
 }
 
-}
+const km =
+distance(
+kyotoLat,
+kyotoLon,
+eqLat,
+eqLon
+);
+
+const sec =
+Math.floor(km / 4);
+
+let expected='震度1';
+
+if(scale==='7') expected='震度5強';
+else if(scale==='6強') expected='震度5弱';
+else if(scale==='6弱') expected='震度4';
+else if(scale==='5強') expected='震度4';
+else if(scale==='5弱') expected='震度3';
+else if(scale==='4') expected='震度2';
 
 document.getElementById('quake').innerHTML =
 
 `⚠ ${q.earthquake.hypocenter.name}<br>
+
 最大震度 ${scale}<br>
-${diffText}`;
+
+${diffMin}分前<br>
+
+京都到達予想 ${sec}秒<br>
+
+京都予想 ${expected}`;
 
 if(q.earthquake.maxScale >= 45){
 
@@ -1103,24 +1117,13 @@ document.getElementById('quake').innerHTML =
 
 loadQuake();
 
-/* location */
-
-navigator.geolocation.getCurrentPosition(pos=>{
-
-document.getElementById('locationText').textContent =
-
-`📍 ${pos.coords.latitude.toFixed(2)},
-${pos.coords.longitude.toFixed(2)}`;
-
-});
-
 /* refresh */
 
 setInterval(loadWeather,600000);
 setInterval(loadNews,600000);
 setInterval(loadQuake,600000);
 
-/* slide switch */
+/* slide */
 
 const weatherSlide =
 document.getElementById('weatherSlide');
@@ -1150,5 +1153,4 @@ weatherVisible = !weatherVisible;
 
 </script>
 
-</body>
-</html>
+</body
